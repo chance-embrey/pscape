@@ -1,4 +1,5 @@
 import {
+  ArcRotateCamera,
   Color3,
   Engine,
   FreeCamera,
@@ -29,69 +30,46 @@ class App {
 }
 
 function createScene(engine: Engine, canvas: HTMLCanvasElement) {
-  // this is the default code from the playground:
+  const scene = new Scene(engine);
 
-  // This creates a basic Babylon Scene object (non-mesh)
-  var scene = new Scene(engine);
+  const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
 
-  // This creates and positions a free camera (non-mesh)
-  var camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
-
-  // This targets the camera to scene origin
-  camera.setTarget(Vector3.Zero());
-
-  // This attaches the camera to the canvas
-  camera.attachControl(canvas, true);
-
-  // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-  var light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
-
-  // Default intensity is 1. Let's dim the light a small amount
   light.intensity = 0.7;
 
-  // Our built-in 'sphere' shape.
-  var sphere = MeshBuilder.CreateSphere(
-    "sphere",
-    { diameter: 2, segments: 32 },
+  const player = MeshBuilder.CreateCapsule("sphere", { height: 2 }, scene);
+
+  player.position.y = 1;
+
+  const camera = new ArcRotateCamera(
+    "thirdPersonCamera",
+    0,
+    0,
+    10,
+    Vector3.Zero(),
     scene,
   );
-  // Move the sphere upward 1/2 its height
-  let startPos = 2;
-  sphere.position.y = startPos;
+  camera.attachControl(canvas, true);
+  camera.setPosition(new Vector3(0, 12, 10));
+  camera.checkCollisions = false;
+  camera.lowerRadiusLimit = 2;
+  camera.upperRadiusLimit = 20;
+  camera.keysUp = [38, 87]; // Up and W
+  camera.keysDown = [40, 83]; // Down and S
+  camera.keysLeft = [37, 65]; // Left and A
+  camera.keysRight = [39, 68]; // Right and D
+  camera.angularSensibilityX = 1000;
+  camera.angularSensibilityY = 1000;
+  camera.inertia = 0.75;
+  camera.setTarget(player, false);
+  camera.lowerBetaLimit = 0.1;
+  camera.upperBetaLimit = Math.PI / 2;
 
-  // Our built-in 'ground' shape.
-  var ground = MeshBuilder.CreateGround(
+  const ground = MeshBuilder.CreateGround(
     "ground",
-    { width: 6, height: 6 },
+    { width: 30, height: 30 },
     scene,
   );
-  var groundMaterial = new StandardMaterial("groundMaterial", scene);
-  groundMaterial.diffuseColor = new Color3(0.5, 0.8, 0.5); // RGB for a greenish color
-  ground.material = groundMaterial;
-  groundMaterial.bumpTexture = new Texture("./normal.jpg", scene);
-  //groundMaterial.bumpTexture.level = 0.125;
 
-  var redMaterial = new StandardMaterial("redMaterial", scene);
-  redMaterial.diffuseColor = new Color3(1, 0, 0); // RGB for red
-  sphere.material = redMaterial;
-
-  var sphereVelocity = 0;
-  var gravity = 0.009;
-  var reboundLoss = 0.1;
-
-  scene.registerBeforeRender(() => {
-    sphereVelocity += gravity;
-    let newY = sphere.position.y - sphereVelocity;
-    sphere.position.y -= sphereVelocity;
-    if (newY < 1) {
-      sphereVelocity = (reboundLoss - 1) * sphereVelocity;
-      newY = 1;
-    }
-    sphere.position.y = newY;
-    if (Math.abs(sphereVelocity) <= gravity && newY < 1 + gravity) {
-      sphere.position.y = startPos++;
-    }
-  });
   return scene;
 }
 
