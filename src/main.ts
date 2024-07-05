@@ -40,6 +40,10 @@ function createScene(engine: Engine, canvas: HTMLCanvasElement) {
 
   player.position.y = 1;
 
+  const playerMaterial = new StandardMaterial("playerMaterial", scene);
+  playerMaterial.diffuseColor = new Color3(1, 0, 0);
+  player.material = playerMaterial;
+
   const camera = new ArcRotateCamera(
     "thirdPersonCamera",
     0,
@@ -69,6 +73,11 @@ function createScene(engine: Engine, canvas: HTMLCanvasElement) {
     { width: 30, height: 30 },
     scene,
   );
+
+  const groundMaterial = new StandardMaterial("groundMaterial", scene);
+  groundMaterial.diffuseColor = new Color3(0.5, 0.8, 0.5); // Greenish color
+  ground.material = groundMaterial;
+  groundMaterial.bumpTexture = new Texture("./normal.png", scene);
 
   return scene;
 }
